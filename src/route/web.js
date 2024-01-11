@@ -2,11 +2,14 @@ const express = require('express');
 const userController = require('../controllers/userController');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const cookieParser = require('cookie-parser')
 // Define your JWT secret key
+const imageDownloader = require('image-downloader')
 const jwtSecret = 'your_secret_key';
-
+const ts = require('fs').promises;
+const multer = require('multer')
 const router = express.Router();
+const fs = require('fs');
+
 
 let initWebRoutes = (app) => {
     router.post('/register', async (req, res) => {
@@ -35,10 +38,11 @@ let initWebRoutes = (app) => {
             const userDoc = await userController.findOne({ email });
             if (userDoc) {
                 const passwordOk = await bcrypt.compare(password, userDoc.password);
-
+                    
                 if (passwordOk) {
-                    jwt.sign({ email: userDoc.email, id: userDoc.id }, jwtSecret, {}, (err, token) => {
+                    jwt.sign({ email: userDoc.email, id: userDoc._id,name : userDoc.name }, jwtSecret, {}, (err, token) => {
                         if (err) throw err;
+                        console.log("check userDoc",userDoc)
                         res.cookie('token', token).json(userDoc);
                     });
                 } else {
@@ -56,7 +60,58 @@ let initWebRoutes = (app) => {
 
     router.get("/profile", (req, res) => {
         const { token } = req.cookies
-        req.json({token})
+        if (token) {
+            jwt.verify(token, jwtSecret, {},async (err, user) => {
+                const { name, email, _id } = await userController.findById(user.id)
+                res.json({name,email,_id})
+            })
+        }
+        else {
+            res.json(null)
+        }
+    })
+
+    router.post('/logout', (req, res) => {
+        res.cookie('token','').json(true)
+    })
+
+    router.post('/upload-by-link', async (req, res) => {
+        const { link } = req.body;
+        const newName = Date.now() + '.jpg';
+        const uploadPath = __dirname + '/uploads/' + newName;
+    
+        try {
+            // Create the 'uploads' directory if it doesn't exist
+            await ts.mkdir(__dirname + '/uploads', { recursive: true });
+    
+            // Download and save the image
+            await imageDownloader.image({
+                url: link,
+                dest: uploadPath,
+            });
+    
+            res.json(newName);
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ error: "Internal server error" });
+        }
+    
+    });
+    
+    const photosMiddleware = multer({dest:'uploads'})
+    router.post('/upload', photosMiddleware.array('photos', 100), (req, res) => {
+        const uploadFiles = []
+        for (let i = 0; i < req.files.length; i++){
+            const { path, originalname } = req.files[i]
+            const parts = originalname.split('.')
+            const ext = parts[parts.length - 1]
+            const newPath = path + '.' + ext
+            
+            fs.renameSync(path, newPath)
+            uploadFiles.push(newPath.replace('uploads\\',''))
+        }
+        console.log('check upload',uploadFiles)
+        res.json(uploadFiles)
     })
 
     return app.use("/", router);
