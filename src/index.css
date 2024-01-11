@@ -2,9 +2,32 @@
 @tailwind components;
 @tailwind utilities;
 
-input[type="text"],input[type="password"], input[type="email"] {
+
+input[type="text"],input[type="password"], input[type="email"], textarea, input[type="number"] {
     @apply w-full border my-2 py-2 px-3 rounded-2xl;
 }
+
+/* CSS để thay đổi màu sắc của dấu tích khi được chọn */
+input[type="checkbox"]:checked + svg {
+  stroke: #0077cc; /* Màu xanh nước biển */
+}
+
+/* CSS để ẩn đi dấu tích mặc định của trình duyệt */
+input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  outline: none;
+}
+
+/* CSS để tạo dấu tích tùy chỉnh sử dụng trường path trong svg */
+input[type="checkbox"] + svg path {
+  fill: none;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 
 button{
     @apply bg-gray-300;

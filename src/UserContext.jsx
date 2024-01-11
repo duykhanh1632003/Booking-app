@@ -3,29 +3,19 @@ import { createContext, useEffect, useState } from "react";
 
 export const UserContext = createContext({});
 
-export function UserContextProvider({ children }) {
-  const [user, setUser] = useState(null);
-
+export function UserContextProvider({children}) {
+  const [user,setUser] = useState(null);
+  const [ready,setReady] = useState(false);
   useEffect(() => {
-    const fetchUserProfile = async () => {
-      try {
-        if (!user) {
-          const response = await axios.get('/profile');
-          // Assuming the user information is present in response.data
-            setUser(response.data);
-            console.log(response)
-        }
-      } catch (error) {
-        console.error('Error fetching user profile:', error);
-      }
-    };
-
-    fetchUserProfile(); // Invoke the function to fetch user profile
-
-  }, [user]); // Depend on 'user' so that useEffect runs only when 'user' changes
-
+    if (!user) {
+      axios.get('/profile').then(({data}) => {
+        setUser(data);
+        setReady(true);
+      });
+    }
+  }, []);
   return (
-    <UserContext.Provider value={{ user, setUser }}>
+    <UserContext.Provider value={{user,setUser,ready,setReady}}>
       {children}
     </UserContext.Provider>
   );

@@ -16,8 +16,8 @@ export default function LoginPage() {
                 email,
                 password
             });
-            setUser(response)
-            console.log(response)
+            console.log('check response in login',response)
+            setUser(response.data)
             if (response) {
                 alert('login successful')
             }
