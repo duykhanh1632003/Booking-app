@@ -79,7 +79,7 @@ let initWebRoutes = (app) => {
         const { link } = req.body;
         const newName = Date.now() + '.jpg';
         const uploadPath = __dirname + '/uploads/' + newName;
-    
+        console.log(link)
         try {
             // Create the 'uploads' directory if it doesn't exist
             await ts.mkdir(__dirname + '/uploads', { recursive: true });
@@ -112,6 +112,10 @@ let initWebRoutes = (app) => {
         }
         console.log('check upload',uploadFiles)
         res.json(uploadFiles)
+    })
+
+    app.post('/places', (req, res) => {
+        
     })
 
     return app.use("/", router);
